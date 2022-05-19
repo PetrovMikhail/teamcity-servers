@@ -1,0 +1,19 @@
+{
+  "name": "teamcity-servers",
+  "description": "Pulumi script to create set Teamcity servers in Kubernetes cluster",
+  "private": true,
+  "devDependencies": {
+      "@types/node": "^10.0.0",
+      "@typescript-eslint/eslint-plugin": "^5.8.0",
+      "@typescript-eslint/parser": "^5.8.0",
+      "eslint": "^8.5.0",
+      "eslint-config-google": "^0.14.0"
+  },
+  "dependencies": {
+      "@pulumi/kubernetes": "^3.0.0",
+      "@pulumi/pulumi": "^3.0.0"
+  },
+  "scripts": {
+      "build": "node_modules/typescript/bin/tsc"
+  }
+}

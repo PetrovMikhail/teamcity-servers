@@ -1,0 +1,30 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) (eq .Values.persistence.type "pvc")}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ default (include "teamcity.fullname" .) }}-server-data
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "teamcity.name" . }}
+    chart: {{ template "teamcity.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  finalizers:
+{{ toYaml .Values.persistence.finalizers | indent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+  {{- end -}}
+  {{- with .Values.persistence.selectorLabels }}
+  selector:
+    matchLabels:
+{{ toYaml . | indent 6 }}
+  {{- end }}
+{{- end -}}
