@@ -10,12 +10,12 @@ const postgreSql = new PostgreSql(
     },
 );
 
-// const teamCity = new TeamCity(
-//     "teamcity-1",
-//     {
-//       label: "123",
-//     },
-//     {
-//       dependsOn: [postgreSql],
-//     },
-// );
+const teamCity = new TeamCity(
+    "teamcity-1",
+    {
+      postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
+    },
+    {
+      dependsOn: [postgreSql],
+    },
+);

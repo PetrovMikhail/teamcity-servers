@@ -60,7 +60,6 @@ export class PostgreSql extends pulumi.ComponentResource {
         },
     );
 
-
     this.helmRelease = new k8s.helm.v3.Release(
         "postgresql",
         {

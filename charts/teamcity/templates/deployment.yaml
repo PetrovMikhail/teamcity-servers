@@ -21,9 +21,7 @@ spec:
         release: {{ .Release.Name }}
     spec:
       volumes:
-          - name: server-data
-            persistentVolumeClaim:
-              claimName: {{ default (include "teamcity.fullname" .) }}-server-data
+{{ toYaml .Values.volumes | indent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -31,8 +29,7 @@ spec:
             runAsUser: 0
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-            - name:  server-data
-              mountPath: /data/teamcity_server/datadir
+{{ toYaml .Values.volumeMounts | indent 12 }}
           ports:
             - name: http
               containerPort: 8111
