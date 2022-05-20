@@ -3,6 +3,7 @@ import * as k8s from "@pulumi/kubernetes";
 
 export interface TeamCityOptions {
   postgresHost: pulumi.Input<string>,
+  postgresPort: number,
   databasePassword: pulumi.Input<string>,
 }
 
@@ -34,18 +35,19 @@ export class TeamCity extends pulumi.ComponentResource {
             namespace: this.namespace.metadata.name,
           },
           stringData: {
-            "connectionProperties.user": serverName,
-            "connectionProperties.password": pulumi.interpolate `${teamCityOptions.databasePassword}`,
-            "connectionUrl": pulumi.interpolate `jdbc:postgresql://${teamCityOptions.postgresHost}:5432/${serverName}`,
+            "connection-properties": pulumi.all([
+              teamCityOptions.postgresHost,
+              teamCityOptions.postgresPort,
+              serverName,
+              teamCityOptions.databasePassword,
+            ]).apply(
+                ([host, port, database, password]) => [
+                  `connectionProperties.user=${serverName}`,
+                  `connectionProperties.password=${password}`,
+                  `connectionUrl=jdbc:postgresql://${host}:${port}/${database}`,
+                ].join("\n"),
+            ),
           },
-          // stringData: {
-          //   "connection-properties": JSON.stringify(
-          //   {
-          //   "connectionProperties.user": "user1",
-          //   "connectionProperties.password": "password",
-          //   "connectionUrl": pulumi.interpolate `jdbc:postgresql://${teamCityOptions.postgresHost}:5432/database1`,
-          //   })
-          // },
         },
         {
           parent: this,
@@ -66,7 +68,7 @@ export class TeamCity extends pulumi.ComponentResource {
               repository: "jetbrains/teamcity-server",
               tag: "2022.04",
             },
-            replicas: 0,
+            replicas: 1,
             service: {
               type: "ClusterIP",
               port: 8111,
@@ -87,20 +89,24 @@ export class TeamCity extends pulumi.ComponentResource {
                 mountPath: "/data/teamcity_server/datadir",
                 readOnly: false,
               },
-              // {
-              //   name: "db-config",
-              //   mountPath: "/data/teamcity_server/datadir/config/database.properties",
-              //   readOnly: true,
-              // },
+              {
+                name: "db-config",
+                mountPath: "/data/teamcity_server/datadir/config",
+                readOnly: false,
+              },
             ],
             volumes: [
-              // {
-              //   name: "db-config",
-              //   secret: {
-              //     secretName: this.databaseSecret.metadata.name,
-              //     optional: false,
-              //   },
-              // },
+              {
+                name: "db-config",
+                secret: {
+                  secretName: this.databaseSecret.metadata.name,
+                  items: [{
+                    key: "connection-properties",
+                    path: "database.properties",
+                  }],
+                  optional: false,
+                },
+              },
               {
                 name: "server-data",
                 persistentVolumeClaim: {

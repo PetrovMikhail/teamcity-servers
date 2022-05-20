@@ -11,25 +11,28 @@ const postgreSql = new PostgreSql(
     },
 );
 
-const teamCityDatabase = new TeamCityDatabase(
-    "teamcity-2",
-    {
-      postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
-      postgresPort: 5432,
-      postgresAdminPassword: postgreSql.adminPassword,
-    },
-    {
-      dependsOn: [postgreSql],
-    },
-);
+for (let i = 0; i < 1; i++) {
+  const teamCityDatabase = new TeamCityDatabase(
+      `teamcity-${i}`,
+      {
+        postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
+        postgresPort: 5432,
+        postgresAdminPassword: postgreSql.adminPassword,
+      },
+      {
+        dependsOn: [postgreSql],
+      },
+  );
 
-const teamCity = new TeamCity(
-    "teamcity-1",
-    {
-      postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
-      databasePassword: teamCityDatabase.rolePassword,
-    },
-    {
-      dependsOn: [postgreSql, teamCityDatabase],
-    },
-);
+  const teamCity = new TeamCity(
+      `teamcity-${i}`,
+      {
+        postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
+        postgresPort: 5432,
+        databasePassword: teamCityDatabase.rolePassword,
+      },
+      {
+        dependsOn: [postgreSql, teamCityDatabase],
+      },
+  );
+}
