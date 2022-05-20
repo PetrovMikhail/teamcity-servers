@@ -10,6 +10,8 @@ image:
   tag: "2022.04"
   pullPolicy: Always
 
+initContainers: []
+
 service:
   type: ClusterIP
   port: 8111
