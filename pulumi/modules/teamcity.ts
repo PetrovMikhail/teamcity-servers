@@ -2,7 +2,8 @@ import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 
 export interface TeamCityOptions {
-  postgresHost: pulumi.Input<string>;
+  postgresHost: pulumi.Input<string>,
+  databasePassword: pulumi.Input<string>,
 }
 
 export class TeamCity extends pulumi.ComponentResource {
@@ -33,11 +34,11 @@ export class TeamCity extends pulumi.ComponentResource {
             namespace: this.namespace.metadata.name,
           },
           stringData: {
-            "connectionProperties.user": "user1",
-            "connectionProperties.password": "password",
-            "connectionUrl": pulumi.interpolate `jdbc:postgresql://${teamCityOptions.postgresHost}:5432/database1`,
+            "connectionProperties.user": serverName,
+            "connectionProperties.password": pulumi.interpolate `${teamCityOptions.databasePassword}`,
+            "connectionUrl": pulumi.interpolate `jdbc:postgresql://${teamCityOptions.postgresHost}:5432/${serverName}`,
           },
-          // data: {
+          // stringData: {
           //   "connection-properties": JSON.stringify(
           //   {
           //   "connectionProperties.user": "user1",
