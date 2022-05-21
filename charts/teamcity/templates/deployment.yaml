@@ -2,34 +2,40 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "teamcity.fullname" . }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ template "teamcity.namespace" . }}
   labels:
-    app: {{ template "teamcity.name" . }}
-    chart: {{ template "teamcity.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "teamcity.labels" . | nindent 4 }}
+{{- with .Values.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "teamcity.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "teamcity.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ template "teamcity.name" . }}
-        release: {{ .Release.Name }}
+        {{- include "teamcity.selectorLabels" . | nindent 8 }}
     spec:
       volumes:
 {{ toYaml .Values.volumes | indent 8 }}
       initContainers:
 {{ toYaml .Values.initContainers | indent 8 }}
+      {{- if .Values.rbac.serviceAccount.create }}
+      serviceAccountName: {{ template "teamcity.fullname" . }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           securityContext:
-            runAsUser: 0
+{{ toYaml .Values.securityContext | indent 12 }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+{{ toYaml .Values.env | indent 12 }}
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
           volumeMounts:
 {{ toYaml .Values.volumeMounts | indent 12 }}
           ports:

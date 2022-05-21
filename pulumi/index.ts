@@ -9,9 +9,9 @@ const postgreSql = new PostgreSql(
     },
 );
 
-for (let i = 0; i < 1; i++) {
+const teamCity =
   new TeamCity(
-      `teamcity-${i}`,
+      "teamcity-0",
       {
         postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
         postgresPort: 5432,
@@ -21,4 +21,3 @@ for (let i = 0; i < 1; i++) {
         dependsOn: [postgreSql],
       },
   );
-}

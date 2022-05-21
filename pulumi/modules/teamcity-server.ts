@@ -35,7 +35,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
             namespace: this.namespace.metadata.name,
           },
           stringData: {
-            "connection-properties": pulumi.all([
+            "database.properties": pulumi.all([
               teamCityServerOptions.postgresHost,
               teamCityServerOptions.postgresPort,
               serverName,
@@ -63,13 +63,22 @@ export class TeamCityServer extends pulumi.ComponentResource {
           namespace: this.namespace.metadata.name,
           atomic: true,
           cleanupOnFail: true,
+          timeout: 600,
           values: {
             image: {
-              repository: "jetbrains/teamcity-server",
-              // repository: "docker.mshop.csolab.ru/teamcity-server",
+              // repository: "jetbrains/teamcity-server",
+              repository: "docker.mshop.csolab.ru/teamcity-server",
               tag: "2022.04",
             },
             replicas: 1,
+            rbac: {
+              serviceAccount: {
+                create: true,
+              },
+            },
+            securityContext: {
+              runAsUser: 0,
+            },
             service: {
               type: "LoadBalancer",
               port: 8111,
@@ -91,14 +100,34 @@ export class TeamCityServer extends pulumi.ComponentResource {
             ],
             resources: {
               limits: {
-                memory: "968Mi",
-                cpu: "800m",
+                memory: "2048Mi",
+                cpu: "1000m",
               },
               requests: {
-                memory: "968Mi",
+                memory: "2048Mi",
                 cpu: "600m",
               },
             },
+            volumes: [
+              {
+                name: "db-config",
+                secret: {
+                  secretName: this.databaseSecret.metadata.name,
+                  optional: false,
+                  defaultMode: 438,
+                },
+              },
+              {
+                name: "server-data",
+                persistentVolumeClaim: {
+                  claimName: `${serverName}-server-data`,
+                },
+              },
+              {
+                name: "drivers",
+                emptyDir: {},
+              },
+            ],
             volumeMounts: [
               {
                 name: "server-data",
@@ -114,29 +143,6 @@ export class TeamCityServer extends pulumi.ComponentResource {
                 name: "drivers",
                 mountPath: "/data/teamcity_server/datadir/lib/jdbc",
                 readOnly: false,
-              },
-            ],
-            volumes: [
-              {
-                name: "db-config",
-                secret: {
-                  secretName: this.databaseSecret.metadata.name,
-                  items: [{
-                    key: "connection-properties",
-                    path: "database.properties",
-                  }],
-                  optional: false,
-                },
-              },
-              {
-                name: "server-data",
-                persistentVolumeClaim: {
-                  claimName: `${serverName}-server-data`,
-                },
-              },
-              {
-                name: "drivers",
-                emptyDir: {},
               },
             ],
           },
