@@ -127,6 +127,12 @@ export class TeamCityServer extends pulumi.ComponentResource {
                 name: "drivers",
                 emptyDir: {},
               },
+              {
+                name: "logs",
+                persistentVolumeClaim: {
+                  claimName: `${serverName}-logs`,
+                },
+              },
             ],
             volumeMounts: [
               {
@@ -142,6 +148,11 @@ export class TeamCityServer extends pulumi.ComponentResource {
               {
                 name: "drivers",
                 mountPath: "/data/teamcity_server/datadir/lib/jdbc",
+                readOnly: false,
+              },
+              {
+                name: "logs",
+                mountPath: "/opt/teamcity/logs",
                 readOnly: false,
               },
             ],
