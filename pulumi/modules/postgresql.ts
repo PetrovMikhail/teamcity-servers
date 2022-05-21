@@ -94,7 +94,7 @@ export class PostgreSql extends pulumi.ComponentResource {
                 limits: {},
               },
               service: {
-                type: "ClusterIP",
+                type: "LoadBalancer",
                 ports: {
                   postgresql: 5432,
                 },

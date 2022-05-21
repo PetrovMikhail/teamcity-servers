@@ -71,7 +71,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
             },
             replicas: 1,
             service: {
-              type: "ClusterIP",
+              type: "LoadBalancer",
               port: 8111,
             },
             initContainers: [
