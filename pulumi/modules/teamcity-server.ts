@@ -8,6 +8,8 @@ export interface TeamCityServerOptions {
 }
 
 export class TeamCityServer extends pulumi.ComponentResource {
+  readonly name: string;
+  readonly options: TeamCityServerOptions;
   readonly namespace: k8s.core.v1.Namespace;
   readonly databaseSecret: k8s.core.v1.Secret;
   readonly helmRelease: k8s.helm.v3.Release;
@@ -15,34 +17,44 @@ export class TeamCityServer extends pulumi.ComponentResource {
   constructor(serverName: string, teamCityServerOptions: TeamCityServerOptions, opts?: pulumi.ResourceOptions) {
     super("modules:TeamCityServer", serverName, {}, opts);
 
-    this.namespace = new k8s.core.v1.Namespace(
-        serverName,
+    this.name = serverName;
+    this.options = teamCityServerOptions;
+    this.namespace = this.createNamespace();
+    this.databaseSecret = this.createDatabaseSecret();
+    this.helmRelease = this.createHelmRelease();
+  }
+
+  private createNamespace(): k8s.core.v1.Namespace {
+    return new k8s.core.v1.Namespace(
+        this.name,
         {
           metadata: {
-            name: serverName,
+            name: this.name,
           },
         },
         {
           parent: this,
         },
     );
+  }
 
-    this.databaseSecret = new k8s.core.v1.Secret(
-        `${serverName}-db`,
+  private createDatabaseSecret(): k8s.core.v1.Secret {
+    return new k8s.core.v1.Secret(
+        `${this.name}-db`,
         {
           metadata: {
-            name: `${serverName}-db`,
+            name: `${this.name}-db`,
             namespace: this.namespace.metadata.name,
           },
           stringData: {
             "database.properties": pulumi.all([
-              teamCityServerOptions.postgresHost,
-              teamCityServerOptions.postgresPort,
-              serverName,
-              teamCityServerOptions.databasePassword,
+              this.options.postgresHost,
+              this.options.postgresPort,
+              this.name,
+              this.options.databasePassword,
             ]).apply(
                 ([host, port, database, password]) => [
-                  `connectionProperties.user=${serverName}`,
+                  `connectionProperties.user=${this.name}`,
                   `connectionProperties.password=${password}`,
                   `connectionUrl=jdbc:postgresql://${host}:${port}/${database}`,
                 ].join("\n"),
@@ -52,14 +64,17 @@ export class TeamCityServer extends pulumi.ComponentResource {
         {
           parent: this,
         },
-    );
 
-    this.helmRelease = new k8s.helm.v3.Release(
-        serverName,
+    );
+  }
+
+  private createHelmRelease(): k8s.helm.v3.Release {
+    return new k8s.helm.v3.Release(
+        this.name,
         {
           version: "0.1.0",
           chart: "../charts/teamcity",
-          name: serverName,
+          name: this.name,
           namespace: this.namespace.metadata.name,
           atomic: true,
           cleanupOnFail: true,
@@ -120,7 +135,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
               {
                 name: "server-data",
                 persistentVolumeClaim: {
-                  claimName: `${serverName}-server-data`,
+                  claimName: `${this.name}-server-data`,
                 },
               },
               {
@@ -130,7 +145,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
               {
                 name: "logs",
                 persistentVolumeClaim: {
-                  claimName: `${serverName}-logs`,
+                  claimName: `${this.name}-logs`,
                 },
               },
             ],

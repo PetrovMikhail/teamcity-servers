@@ -9,6 +9,7 @@ export interface TeamCityDatabaseOptions {
 }
 
 export class TeamCityDatabase extends pulumi.ComponentResource {
+  readonly name: string;
   readonly options: TeamCityDatabaseOptions;
   readonly provider: postgresql.Provider;
   readonly rolePassword: pulumi.Output<string>;
@@ -18,9 +19,18 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
 
   constructor(serverName: string, teamCityDatabaseOptions: TeamCityDatabaseOptions, opts?: pulumi.ResourceOptions) {
     super("modules:TeamCityDatabase", serverName, {}, opts);
-    this.options = teamCityDatabaseOptions;
 
-    this.provider = new postgresql.Provider(serverName,
+    this.name = serverName;
+    this.options = teamCityDatabaseOptions;
+    this.provider = this.createProvider();
+    this.rolePassword = this.generatePassword();
+    this.role = this.createRole();
+    this.database = this.createDatabase();
+    this.grant = this.createGrant();
+  }
+
+  private createProvider(): postgresql.Provider {
+    return new postgresql.Provider(this.name,
         {
           // host: pulumi.interpolate `${this.options.postgresHost}`,
           host: "127.0.0.1",
@@ -35,9 +45,11 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
           parent: this,
         },
     );
+  }
 
-    this.rolePassword = new random.RandomPassword(
-        serverName,
+  private generatePassword(): pulumi.Output<string> {
+    return new random.RandomPassword(
+        this.name,
         {
           length: 10,
           special: false,
@@ -51,11 +63,13 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
           parent: this,
         },
     ).result;
+  }
 
-    this.role = new postgresql.Role(
-        serverName,
+  private createRole(): postgresql.Role {
+    return new postgresql.Role(
+        this.name,
         {
-          name: serverName,
+          name: this.name,
           password: this.rolePassword,
           login: true,
           createDatabase: true,
@@ -65,21 +79,24 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
           parent: this,
         },
     );
+  }
 
-    this.database = new postgresql.Database(
-        serverName,
+  private createDatabase(): postgresql.Database {
+    return new postgresql.Database(
+        this.name,
         {
-          name: serverName,
+          name: this.name,
         },
         {
           provider: this.provider,
           parent: this,
         },
     );
+  }
 
-
-    this.grant = new postgresql.Grant(
-        serverName,
+  private createGrant(): postgresql.Grant {
+    return new postgresql.Grant(
+        this.name,
         {
           database: this.database.name,
           objectType: "database",

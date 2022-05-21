@@ -15,7 +15,14 @@ export class PostgreSql extends pulumi.ComponentResource {
   constructor(name: string, postgreSqlOptions: PostgreSqlOptions, opts?: pulumi.ResourceOptions) {
     super("modules:PostgeSql", name, {}, opts);
 
-    this.namespace = new k8s.core.v1.Namespace(
+    this.namespace = this.createNamespace();
+    this.adminPassword = this.generateAdminPassword();
+    this.passwordSecret = this.createPasswordSecret();
+    this.helmRelease = this.createHelmRelease();
+  }
+
+  private createNamespace(): k8s.core.v1.Namespace {
+    return new k8s.core.v1.Namespace(
         "postgresql",
         {
           metadata: {
@@ -26,8 +33,10 @@ export class PostgreSql extends pulumi.ComponentResource {
           parent: this,
         },
     );
+  }
 
-    this.adminPassword = new random.RandomPassword(
+  private generateAdminPassword(): pulumi.Output<string> {
+    return new random.RandomPassword(
         "masterPassword",
         {
           length: 20,
@@ -42,8 +51,10 @@ export class PostgreSql extends pulumi.ComponentResource {
           parent: this,
         },
     ).result;
+  }
 
-    this.passwordSecret = new k8s.core.v1.Secret(
+  private createPasswordSecret(): k8s.core.v1.Secret {
+    return new k8s.core.v1.Secret(
         "admin-secret",
         {
           metadata: {
@@ -59,8 +70,10 @@ export class PostgreSql extends pulumi.ComponentResource {
           parent: this,
         },
     );
+  }
 
-    this.helmRelease = new k8s.helm.v3.Release(
+  private createHelmRelease(): k8s.helm.v3.Release {
+    return new k8s.helm.v3.Release(
         "postgresql",
         {
           version: "11.2.4",
