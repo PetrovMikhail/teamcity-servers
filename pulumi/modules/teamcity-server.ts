@@ -149,14 +149,14 @@ export class TeamCityServer extends pulumi.ComponentResource {
               },
             },
             volumes: [
-              {
-                name: "db-config",
-                secret: {
-                  secretName: this.databaseSecret.metadata.name,
-                  optional: false,
-                  defaultMode: 438,
-                },
-              },
+              // {
+              //   name: "db-config",
+              //   secret: {
+              //     secretName: this.databaseSecret.metadata.name,
+              //     optional: false,
+              //     defaultMode: 438,
+              //   },
+              // },
               {
                 name: "server-data",
                 persistentVolumeClaim: {
@@ -180,11 +180,11 @@ export class TeamCityServer extends pulumi.ComponentResource {
                 mountPath: "/data/teamcity_server/datadir",
                 readOnly: false,
               },
-              {
-                name: "db-config",
-                mountPath: "/data/teamcity_server/datadir/config",
-                readOnly: false,
-              },
+              // {
+              //   name: "db-config",
+              //   mountPath: "/data/teamcity_server/datadir/config",
+              //   readOnly: false,
+              // },
               {
                 name: "drivers",
                 mountPath: "/data/teamcity_server/datadir/lib/jdbc",
