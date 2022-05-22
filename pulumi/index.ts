@@ -37,3 +37,18 @@ const teamCity0 =
 //       dependsOn: [postgreSql],
 //     },
 // );
+
+// for (let i = 0; i < 20; i++) {
+//   new TeamCity(
+//       `teamcity-${i}`,
+//       {
+//         postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
+//         postgresPort: 5432,
+//         postgresAdminPassword: postgreSql.adminPassword,
+//         servicePort: 8100+i,
+//       },
+//       {
+//         dependsOn: [postgreSql],
+//       },
+//   );
+// }

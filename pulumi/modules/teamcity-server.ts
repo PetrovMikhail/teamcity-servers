@@ -101,8 +101,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
           timeout: 600,
           values: {
             image: {
-              // repository: "jetbrains/teamcity-server",
-              repository: "docker.mshop.csolab.ru/teamcity-server",
+              repository: "jetbrains/teamcity-server",
               tag: "2022.04",
             },
             replicas: 1,
