@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "teamcity.fullname" . }}
+  namespace: {{ template "teamcity.namespace" . }}
+  labels:
+    {{- include "teamcity.labels" . | nindent 4 }}
+{{- with .Values.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "teamcity.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "teamcity.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+{{ toYaml .Values.volumes | indent 8 }}
+      initContainers:
+{{ toYaml .Values.initContainers | indent 8 }}
+      {{- if .Values.rbac.serviceAccount.create }}
+      serviceAccountName: {{ template "teamcity.fullname" . }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          securityContext:
+{{ toYaml .Values.securityContext | indent 12 }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+{{ toYaml .Values.env | indent 12 }}
+          envFrom:
+{{ toYaml .Values.envFrom | indent 12 }}
+          volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 12 }}
+          ports:
+            - name: http
+              containerPort: 8111
+              protocol: TCP
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

@@ -1,0 +1,23 @@
+{{- if .Values.rbac.serviceAccount.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "teamcity.fullname" . }}:manage-agents
+  namespace: {{ template "teamcity.namespace" . }}
+  labels:
+    {{- include "teamcity.labels" . | nindent 4 }}
+{{- with .Values.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["list", "get"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "create", "list", "delete"]
+- apiGroups: ["extensions", "apps"]
+  resources: ["deployments"]
+  verbs: ["list", "get"]
+{{- end }}

@@ -1,0 +1,47 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) (eq .Values.persistence.type "pvc")}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ default (include "teamcity.fullname" .) }}-server-data
+  namespace: {{ template "teamcity.namespace" . }}
+  labels:
+    {{- include "teamcity.labels" . | nindent 4 }}
+  finalizers:
+{{ toYaml .Values.persistence.finalizers | indent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.serverData.size | quote }}
+  {{- with .Values.persistence.selectorLabels }}
+  selector:
+    matchLabels:
+{{ toYaml . | indent 6 }}
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ default (include "teamcity.fullname" .) }}-logs
+  namespace: {{ template "teamcity.namespace" . }}
+  labels:
+    {{- include "teamcity.labels" . | nindent 4 }}
+  finalizers:
+{{ toYaml .Values.persistence.finalizers | indent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.logs.size | quote }}
+  {{- with .Values.persistence.selectorLabels }}
+  selector:
+    matchLabels:
+{{ toYaml . | indent 6 }}
+  {{- end }}
+{{- end -}}

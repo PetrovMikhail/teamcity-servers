@@ -1,0 +1,43 @@
+{
+    "env": {
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "google"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 13,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "max-lines": "warn",
+        "max-lines-per-function": [
+            "warn",
+            50
+        ],
+        "max-len": "warn",
+        "no-empty-function": "error",
+        "no-warning-comments": "error",
+        "quotes": [
+            "warn",
+            "double"
+        ],
+        "require-jsdoc": "warn"
+    },
+    "overrides": [
+        {
+            "files": [
+                "index.ts"
+            ],
+            "rules": {
+                "no-unused-vars": "off"
+            }
+        }
+    ]
+}

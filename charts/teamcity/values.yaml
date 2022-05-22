@@ -1,0 +1,91 @@
+## Default values for teamcity.
+## This is a YAML-formatted file.
+## Declare variables to be passed into your templates.
+
+image:
+  repository: jetbrains/teamcity-server
+  tag: "2022.04"
+  pullPolicy: Always
+
+replicaCount: 1
+
+namespaceOverride: ""
+
+rbac:
+  ## Create new Role to manage teamcity agents and related sa
+  serviceAccount:
+    create: true
+    annotations: {}
+
+securityContext:
+  runAsUser: 1000
+  # runAsGroup: 1000
+  # fsGroup: 1000
+
+## Environement variables can be forwarded to teamcity server container
+env: []
+
+## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
+## This can be useful for auth tokens, etc. Value is templated.
+envFrom: []
+
+## List of init container of teamcity server deployment
+initContainers: []
+
+## Expose the teamcity service to be accessed from outside the cluster (LoadBalancer service).
+## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+## ref: http://kubernetes.io/docs/user-guide/services/
+service:
+  type: LoadBalancer
+  port: 8111
+  annotations: {}
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+persistence:
+  type: pvc
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  finalizers:
+    - kubernetes.io/pvc-protection
+  serverData:
+    size: 10Gi
+  logs:
+    size: 2Gi
+
+## Volumes that can be used in init containers that will not be mounted to deployment pods
+volumes: []
+
+## Defines teamcity server volume mounts
+volumeMounts: []
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 800m
+    memory: 968Mi
+  requests:
+    cpu: 600m
+    memory: 968Mi
+
+## Deployment annotations
+annotations: {}
+
+## Apply extra labels to common labels.
+extraLabels: {}
+
+## Node labels for pod assignment
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+nodeSelector: {}
+
+## Tolerations for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+## Affinity for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}

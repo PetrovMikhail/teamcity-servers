@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: "2022.04"
+description: A TeamCity Helm chart for Kubernetes
+name: teamcity
+version: 0.1.0
