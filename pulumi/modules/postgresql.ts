@@ -15,7 +15,7 @@ export class PostgreSql extends pulumi.ComponentResource {
   readonly helmRelease: k8s.helm.v3.Release;
 
   /**
-     * @param {string} name Name of postgresql object
+     * @param {string} name Name of postgresql object.
      * @param {PostgreSqlOptions} postgreSqlOptions Additional options to apply.
      * @param {pulumi.ResourceOptions | undefined} opts Additional pulumi settings.
      */

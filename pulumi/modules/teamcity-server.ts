@@ -16,7 +16,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
   readonly helmRelease: k8s.helm.v3.Release;
 
   /**
-     * @param {string} serverName Name of Teamcity server
+     * @param {string} serverName Name of Teamcity server.
      * @param {TeamCityServerOptions} teamCityServerOptions Additional options to apply.
      * @param {pulumi.ResourceOptions | undefined} opts Additional pulumi settings.
      */

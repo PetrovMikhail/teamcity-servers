@@ -17,6 +17,11 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
   readonly database: postgresql.Database;
   readonly grant: postgresql.Grant;
 
+  /**
+     * @param {string} serverName Name of related Teamcity server.
+     * @param {TeamCityDatabaseOptions} teamCityDatabaseOptions Additional options to apply.
+     * @param {pulumi.ResourceOptions | undefined} opts Additional pulumi settings.
+     */
   constructor(serverName: string, teamCityDatabaseOptions: TeamCityDatabaseOptions, opts?: pulumi.ResourceOptions) {
     super("modules:TeamCityDatabase", serverName, {}, opts);
 
@@ -29,8 +34,14 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     this.grant = this.createGrant();
   }
 
+  /**
+     * Create postgresql provider to have a possibility
+     * to create separate database for Teamcity server.
+     * @return {postgresql.Provider} Postgresql provider.
+     */
   private createProvider(): postgresql.Provider {
-    return new postgresql.Provider(this.name,
+    return new postgresql.Provider(
+        `${this.name}-db-provider`,
         {
           // host: pulumi.interpolate `${this.options.postgresHost}`,
           host: "127.0.0.1",
@@ -47,9 +58,13 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     );
   }
 
+  /**
+     * Generate password for Teamcity server database role.
+     * @return {pulumi.Output<string>} Database role password.
+     */
   private generatePassword(): pulumi.Output<string> {
     return new random.RandomPassword(
-        this.name,
+        `${this.name}-role-password`,
         {
           length: 10,
           special: false,
@@ -65,11 +80,15 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     ).result;
   }
 
+  /**
+     * Create new database role for Teamcity server.
+     * @return {postgresql.Role} Database role.
+     */
   private createRole(): postgresql.Role {
     return new postgresql.Role(
-        this.name,
+        `${this.name}-db-role`,
         {
-          name: this.name,
+          name: `${this.name}-db-role`,
           password: this.rolePassword,
           login: true,
           createDatabase: true,
@@ -81,11 +100,16 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     );
   }
 
+  /**
+     * Create new database as external database
+     * for Teamcity server
+     * @return {postgresql.Database} Database.
+     */
   private createDatabase(): postgresql.Database {
     return new postgresql.Database(
-        this.name,
+        `${this.name}-database`,
         {
-          name: this.name,
+          name: `${this.name}-database`,
         },
         {
           provider: this.provider,
@@ -94,9 +118,14 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     );
   }
 
+  /**
+     * Grant all needed rights for created database
+     * to created database role
+     * @return {postgresql.Grant} Database grant.
+     */
   private createGrant(): postgresql.Grant {
     return new postgresql.Grant(
-        this.name,
+        `${this.name}-db-grant`,
         {
           database: this.database.name,
           objectType: "database",
@@ -106,6 +135,9 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
         {
           provider: this.provider,
           parent: this,
+          ignoreChanges: [
+            "privileges",
+          ],
         },
     );
   }
