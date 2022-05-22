@@ -78,6 +78,23 @@ Due to Minikube tunnel is running, after the deployment of Teamcity to kuberente
 Each Teamcity server has own database in Postgresql as an extrenal database. Also for each database the new database role is created with own password. Each Teamcity server has an access only to own database for data storage. Database is used to store
 server data as well as to backup TC server instance. All needed tables are created in database after the first Teamcity server connection. If Teamcity pod is terminated for some reason, it would be restarted. An option of restoring data from database will be suggested to user via WebUI. Thus, Teamcity server stores the state in extenral database even if there are problems with Teamcity pods (for instance, during pod eviction).
 
+## Monitoring and logging
+
+For Minikube cluster light monitoring and logging systems can be easily acivited by Minikube out of the box features.
+
+Run this command to install kubernetes metrics server in Minikube cluster:
+```shell
+minikube addons enable metrics-server
+```
+To activate kubernetes dashboard, run this command in a separate terminal window:
+```shell
+minikube dashboard
+```
+Kubernetes default dashboard will be created and exposed to the localhost, so you can get an access to dashboard via browser.
+After completion of these two steps, you will have common metrics about pods and nodes resource consuption, and other information which kubernetes dashboard provides.
+
+In addition, containers logs will be availiable via dashboard, for instance for Posgresql and Teamcity server containers. But it's not possible to obtain teamcity-server and other logs included in `/opt/teamcity/logs` container directory. Only a simple way to connect to the container terminal via the user interface is available, but it might be enought for testing purposes.
+
 ## Future recomendations for production environments
 
 If suggested infrastructure is deployed on the cloud, there are several steps to implement in future:
@@ -86,4 +103,5 @@ If suggested infrastructure is deployed on the cloud, there are several steps to
 1. Using `LoadBalancer` in Posgresql is needed only for database provider creation. In common case service has to be availiable only internally. In general, Posgresql should be located outside of kubernetes cluster, for example in AWS RDS cluster.
 1. Apply Teamcity agent into helm chart and install defined amount of Teamcity agents replicas. Also to run jobs in the same kubernetes cluster, Teamcity server plugin is needed. Installation can be done via init container as server drivers installation.
 1. Monitoring and logging systems should collect metrics data and logs from Teamcity servers to store information about servers behaviour.
+It might be implemented using Prometheus+Grafana stack for monitoring and ELK stack for logging system.
 1. Also some values of Teamcity server should be parametrized, like pod resources or environement variables. It allows you to create servers with different parameters for testing purposes. These parameters can be set in Pulumi config file and forwarded to Teamcity class constructor.

@@ -128,7 +128,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
                 name: "download-drivers",
                 image: "curlimages/curl:7.83.0",
                 command: ["/bin/sh"],
-                args: ["-c", "curl -sI https://jdbc.postgresql.org/download/postgresql-42.3.5.jar -o /var/drivers/postgresql-42.3.5.jar"],
+                args: ["-c", "curl -sI https://jdbc.postgresql.org/download/postgresql-42.2.20.jar -o /var/drivers/postgresql-42.2.20.jar"],
                 volumeMounts: [
                   {
                     name: "drivers",
@@ -141,11 +141,11 @@ export class TeamCityServer extends pulumi.ComponentResource {
             resources: {
               limits: {
                 memory: "2048Mi",
-                cpu: "1000m",
+                cpu: "1500m",
               },
               requests: {
-                memory: "2048Mi",
-                cpu: "600m",
+                memory: "1024Mi",
+                cpu: "1000m",
               },
             },
             volumes: [
