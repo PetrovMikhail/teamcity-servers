@@ -5,6 +5,7 @@ export interface TeamCityServerOptions {
   postgresHost: pulumi.Input<string>,
   postgresPort: number,
   databasePassword: pulumi.Input<string>,
+  servicePort: number,
 }
 
 export class TeamCityServer extends pulumi.ComponentResource {
@@ -14,6 +15,11 @@ export class TeamCityServer extends pulumi.ComponentResource {
   readonly databaseSecret: k8s.core.v1.Secret;
   readonly helmRelease: k8s.helm.v3.Release;
 
+  /**
+     * @param {string} serverName Name of Teamcity server
+     * @param {TeamCityServerOptions} teamCityServerOptions Additional options to apply.
+     * @param {pulumi.ResourceOptions | undefined} opts Additional pulumi settings.
+     */
   constructor(serverName: string, teamCityServerOptions: TeamCityServerOptions, opts?: pulumi.ResourceOptions) {
     super("modules:TeamCityServer", serverName, {}, opts);
 
@@ -24,6 +30,10 @@ export class TeamCityServer extends pulumi.ComponentResource {
     this.helmRelease = this.createHelmRelease();
   }
 
+  /**
+     * Create separate namespace for Teamcity server helm release.
+     * @return {k8s.core.v1.Namespace} k8s namespace.
+     */
   private createNamespace(): k8s.core.v1.Namespace {
     return new k8s.core.v1.Namespace(
         this.name,
@@ -38,12 +48,18 @@ export class TeamCityServer extends pulumi.ComponentResource {
     );
   }
 
+  /**
+     * Create k8s secret contains properties for teamcity server
+     * connection to owned database in postgresql. Properties
+     * have to match a strict format.
+     * @return {k8s.core.v1.Secret} k8s secret with db connection properties.
+     */
   private createDatabaseSecret(): k8s.core.v1.Secret {
     return new k8s.core.v1.Secret(
-        `${this.name}-db`,
+        `${this.name}-db-properties`,
         {
           metadata: {
-            name: `${this.name}-db`,
+            name: "db-properties",
             namespace: this.namespace.metadata.name,
           },
           stringData: {
@@ -68,6 +84,10 @@ export class TeamCityServer extends pulumi.ComponentResource {
     );
   }
 
+  /**
+     * Create helm release of Teamcity server.
+     * @return {k8s.helm.v3.Release} helm release.
+     */
   private createHelmRelease(): k8s.helm.v3.Release {
     return new k8s.helm.v3.Release(
         this.name,
@@ -94,9 +114,15 @@ export class TeamCityServer extends pulumi.ComponentResource {
             securityContext: {
               runAsUser: 0,
             },
+            env: [
+              {
+                name: "TEAMCITY_SERVER_MEM_OPTS",
+                value: "-Xmx2g -XX:ReservedCodeCacheSize=350m",
+              },
+            ],
             service: {
               type: "LoadBalancer",
-              port: 8111,
+              port: this.options.servicePort,
             },
             initContainers: [
               {

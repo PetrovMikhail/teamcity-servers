@@ -6,6 +6,7 @@ export interface TeamCityOptions {
   postgresHost: pulumi.Input<string>,
   postgresPort: number,
   postgresAdminPassword: pulumi.Input<string>,
+  servicePort: number,
 }
 
 export class TeamCity extends pulumi.ComponentResource {
@@ -33,6 +34,7 @@ export class TeamCity extends pulumi.ComponentResource {
           postgresHost: teamCityOptions.postgresHost,
           postgresPort: teamCityOptions.postgresPort,
           databasePassword: this.teamCityDatabase.rolePassword,
+          servicePort: teamCityOptions.servicePort,
         },
         {
           dependsOn: [this.teamCityDatabase],
