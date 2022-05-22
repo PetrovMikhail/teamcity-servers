@@ -88,7 +88,7 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     return new postgresql.Role(
         `${this.name}-db-role`,
         {
-          name: `${this.name}-db-role`,
+          name: `${this.name}`,
           password: this.rolePassword,
           login: true,
           createDatabase: true,
@@ -109,7 +109,7 @@ export class TeamCityDatabase extends pulumi.ComponentResource {
     return new postgresql.Database(
         `${this.name}-database`,
         {
-          name: `${this.name}-database`,
+          name: `${this.name}`,
         },
         {
           provider: this.provider,
