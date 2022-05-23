@@ -141,23 +141,22 @@ export class TeamCityServer extends pulumi.ComponentResource {
             ],
             resources: {
               limits: {
-                memory: "2048Mi",
-                cpu: "1500m",
+                memory: "4096Mi",
+                cpu: "2000m",
               },
               requests: {
-                memory: "1024Mi",
-                cpu: "1000m",
+                memory: "2048Mi",
+                cpu: "2000m",
               },
             },
             volumes: [
-              // {
-              //   name: "db-config",
-              //   secret: {
-              //     secretName: this.databaseSecret.metadata.name,
-              //     optional: false,
-              //     defaultMode: 438,
-              //   },
-              // },
+              {
+                name: "db-config",
+                secret: {
+                  secretName: this.databaseSecret.metadata.name,
+                  optional: false,
+                },
+              },
               {
                 name: "server-data",
                 persistentVolumeClaim: {
@@ -181,11 +180,12 @@ export class TeamCityServer extends pulumi.ComponentResource {
                 mountPath: "/data/teamcity_server/datadir",
                 readOnly: false,
               },
-              // {
-              //   name: "db-config",
-              //   mountPath: "/data/teamcity_server/datadir/config",
-              //   readOnly: false,
-              // },
+              {
+                name: "db-config",
+                mountPath: "/data/teamcity_server/datadir/config/database.properties",
+                subPath: "database.properties",
+                readOnly: true,
+              },
               {
                 name: "drivers",
                 mountPath: "/data/teamcity_server/datadir/lib/jdbc",
