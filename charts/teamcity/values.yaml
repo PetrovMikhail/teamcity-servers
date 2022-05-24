@@ -72,6 +72,33 @@ resources:
     cpu: 600m
     memory: 968Mi
 
+livenessProbe:
+  failureThreshold: 10
+  initialDelaySeconds: 180
+  periodSeconds: 30
+  successThreshold: 1
+  tcpSocket:
+    port: http
+  timeoutSeconds: 10
+
+startupProbe:
+  failureThreshold: 6
+  periodSeconds: 30
+  successThreshold: 1
+  tcpSocket:
+    port: http
+  timeoutSeconds: 1
+
+readinessProbe:
+  exec:
+    command:
+    - cat
+    - /opt/teamcity/logs/teamcity-server.log
+  initialDelaySeconds: 180
+  failureThreshold: 5
+  successThreshold: 1
+  periodSeconds: 30
+
 ## Deployment annotations
 annotations: {}
 
