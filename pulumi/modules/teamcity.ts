@@ -1,4 +1,5 @@
 import * as pulumi from "@pulumi/pulumi";
+import * as k8s from "@pulumi/kubernetes";
 import {TeamCityDatabase} from "../modules/teamcity-database";
 import {TeamCityServer} from "../modules/teamcity-server";
 
@@ -7,6 +8,7 @@ export interface TeamCityOptions {
   postgresPort: number,
   postgresAdminPassword: pulumi.Input<string>,
   servicePort: number,
+  proxyConfigMap: k8s.core.v1.ConfigMap,
 }
 
 /**

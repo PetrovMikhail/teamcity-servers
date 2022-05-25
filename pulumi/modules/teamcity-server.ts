@@ -6,6 +6,7 @@ export interface TeamCityServerOptions {
   postgresPort: number,
   databasePassword: pulumi.Input<string>,
   servicePort: number,
+  proxyConfigMap: k8s.core.v1.ConfigMap;
 }
 
 export class TeamCityServer extends pulumi.ComponentResource {
@@ -35,6 +36,24 @@ export class TeamCityServer extends pulumi.ComponentResource {
      * @return {k8s.core.v1.Namespace} k8s namespace.
      */
   private createNamespace(): k8s.core.v1.Namespace {
+    return new k8s.core.v1.Namespace(
+        this.name,
+        {
+          metadata: {
+            name: this.name,
+          },
+        },
+        {
+          parent: this,
+        },
+    );
+  }
+
+  private updateProxyConfigmap(): k8s.core.v1.Namespace {
+    this.options.proxyConfigMap.metadata.= {
+      "server-block.conf": "asd"
+    }
+
     return new k8s.core.v1.Namespace(
         this.name,
         {

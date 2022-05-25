@@ -1,12 +1,21 @@
 import * as pulumi from "@pulumi/pulumi";
 import {PostgreSql} from "./modules/postgresql";
+import {NginxProxy} from "./modules/nginx-proxy";
 import {TeamCity} from "./modules/teamcity";
 
 const postgreSql = new PostgreSql(
     "postgreSql",
     {
-      serviceType: "LoadBalancer",
+      serviceType: "ClusterIP",
       serivePort: 5432,
+    },
+);
+
+const nginxProxy = new NginxProxy(
+    "nginx-proxy",
+    {
+      postgresHost: pulumi.interpolate `${postgreSql.helmRelease.name}.${postgreSql.namespace.metadata.name}.svc.cluster.local`,
+      postgresPort: 5432,
     },
 );
 
@@ -18,6 +27,7 @@ const teamCity0 =
         postgresPort: 5432,
         postgresAdminPassword: postgreSql.adminPassword,
         servicePort: 8111,
+        proxyConfigMap: nginxProxy.serverConfig,
       },
       {
         dependsOn: [postgreSql],
