@@ -46,6 +46,7 @@ export class TeamCity extends pulumi.ComponentResource {
           postgresPort: teamCityOptions.postgresPort,
           databasePassword: this.teamCityDatabase.rolePassword,
           servicePort: teamCityOptions.servicePort,
+          proxyConfigMap: teamCityOptions.proxyConfigMap,
         },
         {
           dependsOn: [this.teamCityDatabase],

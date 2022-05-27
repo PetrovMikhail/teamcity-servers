@@ -1,5 +1,8 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
+const k8sCli = require("@kubernetes/client-node");
+import * as fs from 'fs';
+import * as YAML from "yaml";
 
 export interface TeamCityServerOptions {
   postgresHost: pulumi.Input<string>,
@@ -27,6 +30,7 @@ export class TeamCityServer extends pulumi.ComponentResource {
     this.name = serverName;
     this.options = teamCityServerOptions;
     this.namespace = this.createNamespace();
+    this.updateProxyConfigmap(k8sCli);
     this.databaseSecret = this.createDatabaseSecret();
     this.helmRelease = this.createHelmRelease();
   }
@@ -49,23 +53,55 @@ export class TeamCityServer extends pulumi.ComponentResource {
     );
   }
 
-  private updateProxyConfigmap(): k8s.core.v1.Namespace {
-    this.options.proxyConfigMap.metadata.= {
-      "server-block.conf": "asd"
-    }
+  private async updateProxyConfigmap(k8sClient:any) {
+      const kc = new k8sClient.KubeConfig();
+      kc.loadFromString(YAML.stringify(fs.readFileSync('../kubeconfig.yaml', 'utf8')));
 
-    return new k8s.core.v1.Namespace(
-        this.name,
-        {
-          metadata: {
-            name: this.name,
-          },
-        },
-        {
-          parent: this,
-        },
-    );
-  }
+      pulumi.log.info(kc);
+
+      // const k8sApi = kc.makeApiClient(k8sClient.CoreV1Api);
+      const options = {"headers": {"Content-type": k8sClient.PatchUtils.PATCH_FORMAT_JSON_PATCH}};
+
+      pulumi.log.info(YAML.stringify(fs.readFileSync('../kubeconfig.yaml', 'utf8')));
+
+      // const res1 = await k8sApi.readNamespacedConfigMap(
+      //     this.options.proxyConfigMap.metadata.name,
+      //     this.options.proxyConfigMap.metadata.namespace,
+      //     undefined, undefined, undefined, undefined,
+      //     options,
+      // ).then(
+      //     (res: any) =>{
+      //       return res;
+      //     },
+      // ).catch(
+      //     (e: any) =>{
+      //       console.log(e); throw e;
+      //     },
+      // );
+
+      // pulumi.log.info(res1);
+
+    //   const res2 = await k8sApi.patchNamespacedConfigMap(
+    //     this.options.proxyConfigMap.metadata.name,
+    //     this.options.proxyConfigMap.metadata.namespace,
+    //     [{
+    //       "op": "replace",
+    //       "path": "/data",
+    //       "value": {
+    //         "new_data",
+    //       },
+    //     }], undefined, undefined, undefined, undefined,
+    //     options,
+    // ).then(
+    //     (res: any) =>{
+    //       return res;
+    //     },
+    // ).catch(
+    //     (e: any) =>{
+    //       console.log(e); throw e;
+    //     },
+    // );
+  };
 
   /**
      * Create k8s secret contains properties for teamcity server

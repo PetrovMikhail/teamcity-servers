@@ -13,7 +13,9 @@
       "@pulumi/kubernetes": "^3.0.0",
       "@pulumi/pulumi": "^3.0.0",
       "@pulumi/random": "^4.2.0",
-      "@pulumi/postgresql": "^3.2.0"
+      "@pulumi/postgresql": "^3.2.0",
+      "@kubernetes/client-node": "0.16.3",
+      "yaml": "1.10.2"
   },
   "scripts": {
       "build": "node_modules/typescript/bin/tsc"
